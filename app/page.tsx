@@ -1,65 +1,178 @@
-import Image from "next/image";
+"use client";
+
+import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
+import { useCallback, useState } from "react";
 
 export default function Home() {
+  const highlightCodeOnCanvas = useCallback(
+    (detectedCodes: IDetectedBarcode[], ctx: CanvasRenderingContext2D) => {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      detectedCodes.forEach((detectedCode) => {
+        const { boundingBox } = detectedCode;
+        const cornerSize = 20;
+        const lineWidth = 4;
+
+        ctx.strokeStyle = "#10B981"; // Green color for corners
+        ctx.lineWidth = lineWidth;
+
+        const x = boundingBox.x;
+        const y = boundingBox.y;
+        const w = boundingBox.width;
+        const h = boundingBox.height;
+
+        // Top-left corner
+        ctx.beginPath();
+        ctx.moveTo(x, y + cornerSize);
+        ctx.lineTo(x, y);
+        ctx.lineTo(x + cornerSize, y);
+        ctx.stroke();
+
+        // Top-right corner
+        ctx.beginPath();
+        ctx.moveTo(x + w - cornerSize, y);
+        ctx.lineTo(x + w, y);
+        ctx.lineTo(x + w, y + cornerSize);
+        ctx.stroke();
+
+        // Bottom-left corner
+        ctx.beginPath();
+        ctx.moveTo(x, y + h - cornerSize);
+        ctx.lineTo(x, y + h);
+        ctx.lineTo(x + cornerSize, y + h);
+        ctx.stroke();
+
+        // Bottom-right corner
+        ctx.beginPath();
+        ctx.moveTo(x + w - cornerSize, y + h);
+        ctx.lineTo(x + w, y + h);
+        ctx.lineTo(x + w, y + h - cornerSize);
+        ctx.stroke();
+
+        // Scanning line (subtle green)
+        const midY = y + h / 2;
+        ctx.strokeStyle = "#10B981";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, midY);
+        ctx.lineTo(x + w, midY);
+        ctx.stroke();
+      });
+    },
+    []
+  );
+
+  const [scanResult, setScanResult] = useState<IDetectedBarcode[]>([]);
+
+  const handleScan = useCallback((data: IDetectedBarcode[]) => {
+    console.log("🚀 ~ Scanned data:", data);
+    setScanResult(data);
+  }, []);
+
+  const handleError = useCallback((err: unknown) => {
+    console.error("Scanner Error:", err);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="min-h-screen bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center p-4">
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-white mb-2">QR Code Scanner</h1>
+        <p className="text-slate-400">Position the QR code within the frame</p>
+      </div>
+
+      {/* Scanner Container */}
+      <div className="relative w-full max-w-md">
+        {/* Background glow effect */}
+        <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full"></div>
+
+        {/* Scanner wrapper with border and shadow */}
+        <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-slate-700">
+          {/* Scanner area */}
+          <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-black">
+            <Scanner
+              onScan={handleScan}
+              onError={handleError}
+              components={{
+                tracker: highlightCodeOnCanvas,
+              }}
+              constraints={{
+                facingMode: "environment",
+              }}
+              styles={{
+                container: {
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "0.75rem",
+                },
+                video: {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                },
+              }}
+              formats={["qr_code", "code_128"]}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            {/* Corner frame overlay - ONLY outer corners now */}
+            <div className="absolute inset-4 pointer-events-none">
+              {/* Top-left */}
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg"></div>
+              {/* Top-right */}
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg"></div>
+              {/* Bottom-left */}
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg"></div>
+              {/* Bottom-right */}
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-lg"></div>
+            </div>
+
+            {/* Scanning animation line */}
+            <div className="absolute inset-x-4 top-1/2 h-0.5 bg-linear-to-r from-transparent via-emerald-400 to-transparent animate-pulse"></div>
+          </div>
+
+          {/* Status indicator */}
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+            <span className="text-sm text-slate-300">
+              {scanResult.length > 0 ? "Code Detected!" : "Scanning..."}
+            </span>
+          </div>
         </div>
-      </main>
+      </div>
+
+      {/* Results Display */}
+      {scanResult.length > 0 && (
+        <div className="mt-6 w-full max-w-md bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700">
+          <h2 className="text-lg font-semibold text-white mb-3">
+            Scan Results
+          </h2>
+          <div className="space-y-3">
+            {scanResult.map((result, index) => (
+              <div
+                key={index}
+                className="bg-slate-700/50 rounded-lg p-4 border border-slate-600"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <span className="text-xs font-medium text-emerald-400 uppercase tracking-wider">
+                    {result.format}
+                  </span>
+                  <span className="text-xs text-slate-400">#{index + 1}</span>
+                </div>
+                <p className="text-sm text-white font-mono break-all">
+                  {result.rawValue}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Instructions */}
+      <div className="mt-8 text-center max-w-md">
+        <p className="text-sm text-slate-400">
+          Make sure the QR code is well-lit and within the camera frame
+        </p>
+      </div>
     </div>
   );
 }
