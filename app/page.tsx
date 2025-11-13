@@ -95,6 +95,7 @@ export default function Home() {
               onError={handleError}
               components={{
                 tracker: highlightCodeOnCanvas,
+                finder: false,
               }}
               constraints={{
                 facingMode: "environment",
@@ -113,21 +114,6 @@ export default function Home() {
               }}
               formats={["qr_code", "code_128"]}
             />
-
-            {/* Corner frame overlay - ONLY outer corners now */}
-            <div className="absolute inset-4 pointer-events-none">
-              {/* Top-left */}
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg"></div>
-              {/* Top-right */}
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg"></div>
-              {/* Bottom-left */}
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg"></div>
-              {/* Bottom-right */}
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-lg"></div>
-            </div>
-
-            {/* Scanning animation line */}
-            <div className="absolute inset-x-4 top-1/2 h-0.5 bg-linear-to-r from-transparent via-emerald-400 to-transparent animate-pulse"></div>
           </div>
 
           {/* Status indicator */}
