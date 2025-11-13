@@ -96,6 +96,7 @@ export default function Home() {
               components={{
                 tracker: highlightCodeOnCanvas,
                 finder: false,
+                zoom: true,
               }}
               constraints={{
                 facingMode: "environment",
