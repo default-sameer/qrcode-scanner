@@ -115,7 +115,7 @@ export default function Home() {
                     objectFit: "cover",
                   },
                 }}
-                formats={["qr_code", "code_128"]}
+                // formats={["qr_code", "code_128"]}
               />
             )}
           </div>
