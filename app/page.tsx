@@ -4,6 +4,9 @@ import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { useCallback, useState } from "react";
 
 export default function Home() {
+  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [scanResult, setScanResult] = useState<IDetectedBarcode[]>([]);
+
   const highlightCodeOnCanvas = useCallback(
     (detectedCodes: IDetectedBarcode[], ctx: CanvasRenderingContext2D) => {
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -62,8 +65,6 @@ export default function Home() {
     []
   );
 
-  const [scanResult, setScanResult] = useState<IDetectedBarcode[]>([]);
-
   const handleScan = useCallback((data: IDetectedBarcode[]) => {
     console.log("🚀 ~ Scanned data:", data);
     setScanResult(data);
@@ -90,39 +91,54 @@ export default function Home() {
         <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-slate-700">
           {/* Scanner area */}
           <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-black">
-            <Scanner
-              onScan={handleScan}
-              onError={handleError}
-              components={{
-                tracker: highlightCodeOnCanvas,
-                finder: false,
-                zoom: true,
-              }}
-              constraints={{
-                facingMode: "environment",
-              }}
-              styles={{
-                container: {
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "0.75rem",
-                },
-                video: {
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                },
-              }}
-              formats={["qr_code", "code_128"]}
-            />
+            {isCameraOn && (
+              <Scanner
+                onScan={handleScan}
+                onError={handleError}
+                components={{
+                  tracker: highlightCodeOnCanvas,
+                  finder: false,
+                  zoom: true,
+                }}
+                constraints={{
+                  facingMode: "environment",
+                }}
+                styles={{
+                  container: {
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "0.75rem",
+                  },
+                  video: {
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  },
+                }}
+                formats={["qr_code", "code_128"]}
+              />
+            )}
           </div>
 
           {/* Status indicator */}
           <div className="mt-4 flex items-center justify-center gap-2">
-            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span className="text-sm text-slate-300">
-              {scanResult.length > 0 ? "Code Detected!" : "Scanning..."}
-            </span>
+            <div className="flex items-center gap-2 justify-center">
+              <div className="flex items-center justify-center gap-4">
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isCameraOn ? "bg-emerald-400 animate-pulse" : "bg-red-400"
+                  }`}
+                ></div>
+                <CameraSwitch
+                  enabled={isCameraOn}
+                  onChange={() => setIsCameraOn((s) => !s)}
+                />
+              </div>
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-slate-300">
+                {scanResult.length > 0 ? "Code Detected!" : "Scanning..."}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -163,3 +179,30 @@ export default function Home() {
     </div>
   );
 }
+
+const CameraSwitch = ({
+  enabled,
+  onChange,
+}: {
+  enabled: boolean;
+  onChange: () => void;
+}) => {
+  return (
+    <>
+      <label
+        htmlFor="cameraToggle"
+        className="relative block h-6 w-12 rounded-full bg-gray-300 transition-colors [-webkit-tap-highlight-color:transparent] has-checked:bg-green-500 cursor-pointer"
+      >
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={onChange}
+          id="cameraToggle"
+          className="peer sr-only"
+        />
+
+        <span className="absolute inset-y-0 start-0 m-1 size-4 rounded-full bg-white transition-[inset-inline-start] peer-checked:start-6"></span>
+      </label>
+    </>
+  );
+};
