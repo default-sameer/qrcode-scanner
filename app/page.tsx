@@ -4,7 +4,7 @@ import { Scanner, IDetectedBarcode } from "@yudiel/react-qr-scanner";
 import { useCallback, useState } from "react";
 
 export default function Home() {
-  const [isCameraOn, setIsCameraOn] = useState(true);
+  const [isCameraOn, setIsCameraOn] = useState(false);
   const [scanResult, setScanResult] = useState<IDetectedBarcode[]>([]);
 
   const highlightCodeOnCanvas = useCallback(
